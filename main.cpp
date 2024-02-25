@@ -1,24 +1,24 @@
-//
-// Created by meshu on 1/25/2024.
-//
+#include <SFML/Graphics.hpp>
 
+int main()
+{
+    sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+    sf::CircleShape shape(100.f);
+    shape.setFillColor(sf::Color::Green);
 
-/*
-   __        __
-  /\ \      / /\
- / /\ \    / /\ \
-/ /__\ \__/_/__\ \
-\/____\ \_______\/
-        \/ /
-       / /\
-      / /\ \
-     / /__\ \
-     \_____\/
-*/
-#include <iostream>
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
 
-int main(int argc, char *argv[]) {
-    std::printf("");
-    std::cout << "Hello, World!" << std::endl;
+        window.clear();
+        window.draw(shape);
+        window.display();
+    }
+
     return 0;
 }
