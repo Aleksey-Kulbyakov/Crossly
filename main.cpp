@@ -49,7 +49,7 @@ int main() {
         {
             for (int y = 0; y < window.getSize().y; y += GRID_SIZE)
             {
-                cell.setPosition(sf::Vector2f(x, y));
+                cell.setPosition(sf::Vector2f(x + 2, y + 2));
                 window.draw(cell);
             }
         }
