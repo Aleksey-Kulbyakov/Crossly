@@ -1,6 +1,7 @@
 #include "core/settings.h"
 #include "core/polygon.hpp"
 #include "core/debug.hpp"
+#include "core/graphic_utils.hpp"
 #include "SFML/Graphics.hpp"
 #include <vector>
 #include <iostream>
@@ -69,12 +70,37 @@ int main() {
 
         window.draw(debug_info);
 
+        bool CURSOR_ON_POINT = false;
+
         // Draw polygons
         for (int polygon_index = 0; polygon_index < polygons.size(); polygon_index++) {
+            sf::ConvexShape convex;
+            convex.setPointCount(polygons[polygon_index].num_of_dots);
+            sf::Vector2<int> mouse_pos  = sf::Mouse::getPosition(window);
+
             for (int point_index = 0; point_index < polygons[polygon_index].num_of_dots; point_index++) {
                 // std::cout << "Polygon: " << polygon_index << " Point: " << point_index <<  '\n';
-                window.draw(polygons[polygon_index].points[point_index]);
+                sf::CircleShape    cur_point = polygons[polygon_index].points[point_index];
+                sf::Vector2<float> point_pos = cur_point.getPosition();
+
+                if (
+                        ((mouse_pos.x - point_pos.x)*(mouse_pos.x- point_pos.x)
+                        +
+                        (mouse_pos.y - point_pos.y)*(mouse_pos.y- point_pos.y)
+                        <=
+                        GRID_SELECT_RADIUS*GRID_SELECT_RADIUS )
+                        && !CURSOR_ON_POINT) {
+                    CURSOR_ON_POINT = true;
+                    cur_point.setFillColor(SELECTED_POINT_FILL_COLOR);
+                }
+                else {
+                    cur_point.setFillColor(POINT_FILL_COLOR);
+                }
+
+                convex.setPoint(point_index, cur_point.getPosition());
+                window.draw(cur_point);
             }
+
         }
 
 
@@ -93,7 +119,23 @@ int main() {
                     root_point.setOutlineThickness(POINT_THICKNESS);
                     root_point.setOutlineColor(POINT_OUTLINE_COLOR);
                     root_point.setFillColor(POINT_FILL_COLOR);
-                    root_point.setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
+
+                    sf::Vector2<int> mouse_pos    = sf::Mouse::getPosition(window);
+                    sf::Vector2<int> nearest_grid = link_to_grid(mouse_pos);
+
+                    if (
+                            (mouse_pos.x - nearest_grid.x)*(mouse_pos.x - nearest_grid.x)
+                            +
+                            (mouse_pos.y - nearest_grid.y)*(mouse_pos.y - nearest_grid.y)
+                            <=
+                            GRID_LINKING_RADIUS*GRID_LINKING_RADIUS
+                            )
+                    {
+                        root_point.setPosition(nearest_grid.x - (float)POINT_RADIUS/2, nearest_grid.y - (float)POINT_RADIUS/2);
+                    }
+                    else {
+                        root_point.setPosition(mouse_pos.x - POINT_RADIUS, mouse_pos.y - (float)POINT_RADIUS);
+                    }
 
                     std::vector<sf::CircleShape> points = {root_point};
                     Polygon new_polygon {1, points};

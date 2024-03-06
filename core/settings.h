@@ -9,8 +9,10 @@
 
 
 // GRID
-#define GRID_SIZE     50
-#define GRID_THICKNESS 1
+#define GRID_SIZE           50
+#define GRID_THICKNESS       1
+#define GRID_SELECT_RADIUS  10
+#define GRID_LINKING_RADIUS 10
 sf::Color GRID_OUTLINE_COLOR(0, 0, 0, 50);
 sf::Color    GRID_FILL_COLOR(255, 255, 255);
 // POINT
@@ -18,3 +20,4 @@ sf::Color    GRID_FILL_COLOR(255, 255, 255);
 #define POINT_THICKNESS 1
 sf::Color POINT_OUTLINE_COLOR(0, 0, 0);
 sf::Color    POINT_FILL_COLOR(255, 0, 0);
+sf::Color SELECTED_POINT_FILL_COLOR(0, 0, 255);
