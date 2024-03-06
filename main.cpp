@@ -59,7 +59,7 @@ int main() {
 //        window.draw(point);
 
         // Debug info
-        adjust_debug_text(debug_info,     0, FONT_SIZE*0, FONT_SIZE, font);
+        adjust_debug_text(debug_info,     5, FONT_SIZE*0, FONT_SIZE, font);
 
         std::stringstream string;
         string << "Mouse X: " << sf::Mouse::getPosition(window).x << '\n';
