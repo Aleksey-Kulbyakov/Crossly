@@ -5,6 +5,6 @@
 #include "vector"
 
 struct Polygon {
-    uint32_t             num_of_dots;
-    std::vector<sf::Vector2f> points;
+    uint32_t                num_of_dots;
+    std::vector<sf::CircleShape> points;
 };

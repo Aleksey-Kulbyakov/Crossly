@@ -5,13 +5,13 @@
 #define WINDOW_WIDTH  1920
 #define WINDOW_HEIGHT 1080
 #define TITLE         "Crossly"
-
+#define FONT_SIZE     24
 
 
 // GRID
 #define GRID_SIZE     50
 #define GRID_THICKNESS 1
-sf::Color GRID_OUTLINE_COLOR(0, 0, 0);
+sf::Color GRID_OUTLINE_COLOR(0, 0, 0, 50);
 sf::Color    GRID_FILL_COLOR(255, 255, 255);
 // POINT
 #define POINT_RADIUS    5
