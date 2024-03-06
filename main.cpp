@@ -3,6 +3,8 @@
 #include "SFML/Graphics.hpp"
 #include <vector>
 #include <iostream>
+#include <sstream>
+
 
 std::vector<Polygon> polygons;
 
@@ -41,6 +43,37 @@ int main() {
         cell.setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
         window.draw(point);
 
+        // Debug info
+        sf::Text debug_mouse_pos_x, debug_mouse_pos_y;
+        sf::Font font;
+        font.loadFromFile("../fonts/Inter/InterDisplay-Medium.otf");
+
+
+
+        debug_mouse_pos_x.setPosition(0, 0);
+        debug_mouse_pos_y.setPosition(0, 24);
+        debug_mouse_pos_x.setFont(font);
+        debug_mouse_pos_y.setFont(font);
+
+
+        std::stringstream debug_text;
+
+        debug_text << "Mouse X: " << sf::Mouse::getPosition(window).x << '\n';
+        debug_mouse_pos_x.setString(debug_text.str());
+        debug_text.clear();
+
+        debug_text << "Mouse Y: " << sf::Mouse::getPosition(window).y << '\n';
+        debug_mouse_pos_x.setString(debug_text.str());
+        debug_text.clear();
+
+        debug_mouse_pos_x.setCharacterSize(24);
+        debug_mouse_pos_y.setCharacterSize(24);
+        debug_mouse_pos_x.setFillColor(sf::Color::Black);
+        debug_mouse_pos_y.setFillColor(sf::Color::Black);
+
+        window.draw(debug_mouse_pos_x);
+        window.draw(debug_mouse_pos_y);
+
         while (window.pollEvent(event))
         {
             switch (event.type) {
@@ -59,6 +92,7 @@ int main() {
                     ;
             }
         }
+
 
 
 
