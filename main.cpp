@@ -66,6 +66,7 @@ int main() {
             line[0].position.x = line_root_point.getPosition().x + POINT_RADIUS;
             line[0].position.y = line_root_point.getPosition().y + POINT_RADIUS;
 
+
             line[1].position.x = sf::Mouse::getPosition(window).x;
             line[1].position.y = sf::Mouse::getPosition(window).y;
 
@@ -118,6 +119,10 @@ int main() {
                 convex.setPoint(point_index, cur_point.getPosition());
                 window.draw(cur_point);
             }
+            convex.setFillColor(CONVEX_FILL_COLOR);
+            convex.setOutlineThickness(CONVEX_THICKNESS);
+            convex.setOutlineColor(CONVEX_OUTLINE_COLOR);
+            window.draw(convex);
 
         }
 
@@ -142,11 +147,11 @@ int main() {
                             polygons[ON_POLYGON_INDEX] = polygons.back();
                             polygons.pop_back();
                         }
+                        LINE_MODE = false;
                     }
                     // Case 2: Draw a line
                     else if (CURSOR_ON_POINT)
                     {
-                        std::cout << "Drawing a line" << '\n';
                         LINE_MODE = true;
                         line_root_point = polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX];
                     }
@@ -199,6 +204,13 @@ int main() {
 
 
 
+                    }
+                }
+                case sf::Event::KeyPressed:
+                {
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                    {
+                        LINE_MODE = false;
                     }
                 }
                 default:
