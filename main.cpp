@@ -185,6 +185,7 @@ int main() {
                         {
                             polygons[ON_POLYGON_INDEX].points.push_back(root_point);
                             LINE_MODE = false;
+                            polygons[ON_POLYGON_INDEX].num_of_dots += 1;
                         }
                         else
                         {
