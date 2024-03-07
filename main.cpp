@@ -188,10 +188,12 @@ int main() {
                         {
                             Polygon new_polygon {1, points};
                             polygons.push_back(new_polygon);
+
+                            LINE_MODE = true;
+                            line_root_point = root_point;
                         }
 
-                        LINE_MODE = true;
-                        line_root_point = root_point;
+
 
 
                     }
