@@ -11,7 +11,7 @@
 // GRID
 #define GRID_SIZE           50
 #define GRID_THICKNESS       1
-#define GRID_SELECT_RADIUS  10
+#define GRID_SELECT_RADIUS  20
 #define GRID_LINKING_RADIUS 10
 sf::Color GRID_OUTLINE_COLOR(46, 40, 36, 50);
 sf::Color    GRID_FILL_COLOR(202, 198, 192);

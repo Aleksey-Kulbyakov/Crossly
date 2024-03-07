@@ -70,7 +70,9 @@ int main() {
 
         window.draw(debug_info);
 
-        bool CURSOR_ON_POINT = false;
+        bool CURSOR_ON_POINT  = false;
+        int  ON_POLYGON_INDEX;
+        int  ON_POINT_INDEX;
 
         // Draw polygons
         for (int polygon_index = 0; polygon_index < polygons.size(); polygon_index++) {
@@ -79,7 +81,6 @@ int main() {
             sf::Vector2<int> mouse_pos  = sf::Mouse::getPosition(window);
 
             for (int point_index = 0; point_index < polygons[polygon_index].num_of_dots; point_index++) {
-                // std::cout << "Polygon: " << polygon_index << " Point: " << point_index <<  '\n';
                 sf::CircleShape    cur_point = polygons[polygon_index].points[point_index];
                 sf::Vector2<float> point_pos = cur_point.getPosition();
 
@@ -90,7 +91,9 @@ int main() {
                         <=
                         GRID_SELECT_RADIUS*GRID_SELECT_RADIUS )
                         && !CURSOR_ON_POINT) {
-                    CURSOR_ON_POINT = true;
+                    CURSOR_ON_POINT  = true;
+                    ON_POINT_INDEX   = point_index;
+                    ON_POLYGON_INDEX = polygon_index;
                     cur_point.setFillColor(SELECTED_POINT_FILL_COLOR);
                 }
                 else {
@@ -114,32 +117,47 @@ int main() {
                 }
                 case sf::Event::MouseButtonPressed:
                 {
-                    // Create new polygon
-                    sf::CircleShape root_point(POINT_RADIUS);
-                    root_point.setOutlineThickness(POINT_THICKNESS);
-                    root_point.setOutlineColor(POINT_OUTLINE_COLOR);
-                    root_point.setFillColor(POINT_FILL_COLOR);
-
-                    sf::Vector2<int> mouse_pos    = sf::Mouse::getPosition(window);
-                    sf::Vector2<int> nearest_grid = link_to_grid(mouse_pos);
-
-                    if (
-                            (mouse_pos.x - nearest_grid.x)*(mouse_pos.x - nearest_grid.x)
-                            +
-                            (mouse_pos.y - nearest_grid.y)*(mouse_pos.y - nearest_grid.y)
-                            <=
-                            GRID_LINKING_RADIUS*GRID_LINKING_RADIUS
-                            )
+                    // Case 1: Shift combo
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && CURSOR_ON_POINT)
                     {
-                        root_point.setPosition(nearest_grid.x - (float)POINT_RADIUS/2, nearest_grid.y - (float)POINT_RADIUS/2);
+                        polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX] = polygons[ON_POLYGON_INDEX].points.back();
+                        polygons[ON_POLYGON_INDEX].points.pop_back();
+                        polygons[ON_POLYGON_INDEX].num_of_dots -= 1;
+                        if (polygons[ON_POLYGON_INDEX].num_of_dots == 0) {
+                            polygons[ON_POLYGON_INDEX] = polygons.back();
+                            polygons.pop_back();
+                        }
                     }
-                    else {
-                        root_point.setPosition(mouse_pos.x - POINT_RADIUS, mouse_pos.y - (float)POINT_RADIUS);
-                    }
+                    // Case 2: Adding a new dot
+                    else
+                    {
+                        // Create new polygon
+                        sf::CircleShape root_point(POINT_RADIUS);
+                        root_point.setOutlineThickness(POINT_THICKNESS);
+                        root_point.setOutlineColor(POINT_OUTLINE_COLOR);
+                        root_point.setFillColor(POINT_FILL_COLOR);
 
-                    std::vector<sf::CircleShape> points = {root_point};
-                    Polygon new_polygon {1, points};
-                    polygons.push_back(new_polygon);
+                        sf::Vector2<int> mouse_pos    = sf::Mouse::getPosition(window);
+                        sf::Vector2<int> nearest_grid = link_to_grid(mouse_pos);
+
+                        if (
+                                (mouse_pos.x - nearest_grid.x)*(mouse_pos.x - nearest_grid.x)
+                                +
+                                (mouse_pos.y - nearest_grid.y)*(mouse_pos.y - nearest_grid.y)
+                                <=
+                                GRID_LINKING_RADIUS*GRID_LINKING_RADIUS
+                                )
+                        {
+                            root_point.setPosition(nearest_grid.x - POINT_RADIUS, nearest_grid.y - POINT_RADIUS);
+                        }
+                        else {
+                            root_point.setPosition(mouse_pos.x - POINT_RADIUS, mouse_pos.y - POINT_RADIUS);
+                        }
+
+                        std::vector<sf::CircleShape> points = {root_point};
+                        Polygon new_polygon {1, points};
+                        polygons.push_back(new_polygon);
+                    }
                 }
                 default:
                     ;
