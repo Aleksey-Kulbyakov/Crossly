@@ -36,6 +36,9 @@ int main() {
     font.loadFromFile("../assets/fonts/Inter/InterDisplay-Medium.otf");
     // -- Debug info
     sf::Text debug_info;
+    // -- Line mode
+    bool LINE_MODE = false;
+    sf::CircleShape line_root_point;
     // End of initialization
 
     // Start main loop
@@ -57,6 +60,15 @@ int main() {
         // Draw a pointer under cursor
 //        point.setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
 //        window.draw(point);
+        if (LINE_MODE)
+        {
+            sf::VertexArray line(sf::Lines, 2);
+            line[0].position = line_root_point.getPosition();
+            line[1].position.x = sf::Mouse::getPosition(window).x;
+            line[1].position.y = sf::Mouse::getPosition(window).y;
+
+            window.draw(line);
+        }
 
         // Debug info
         adjust_debug_text(debug_info,     5, FONT_SIZE*0, FONT_SIZE, font);
@@ -65,6 +77,7 @@ int main() {
         string << "Mouse X: " << sf::Mouse::getPosition(window).x << '\n';
         string << "Mouse Y: " << sf::Mouse::getPosition(window).y << '\n';
         string << "Total number of polygons: " << polygons.size() << '\n';
+        string << "Line mode is: " << LINE_MODE << '\n';
         debug_info.setString(string.str());
         string.clear();
 
@@ -128,9 +141,19 @@ int main() {
                             polygons.pop_back();
                         }
                     }
-                    // Case 2: Adding a new dot
+                    // Case 2: Draw a line
+                    else if (CURSOR_ON_POINT)
+                    {
+                        std::cout << "Drawing a line" << '\n';
+                        LINE_MODE = true;
+                        line_root_point = polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX];
+                    }
+
+
+                    // Case 3: Adding a new dot
                     else
                     {
+
                         // Create new polygon
                         sf::CircleShape root_point(POINT_RADIUS);
                         root_point.setOutlineThickness(POINT_THICKNESS);
@@ -155,8 +178,22 @@ int main() {
                         }
 
                         std::vector<sf::CircleShape> points = {root_point};
-                        Polygon new_polygon {1, points};
-                        polygons.push_back(new_polygon);
+
+                        if (LINE_MODE)
+                        {
+                            polygons[ON_POLYGON_INDEX].points.push_back(root_point);
+                            LINE_MODE = false;
+                        }
+                        else
+                        {
+                            Polygon new_polygon {1, points};
+                            polygons.push_back(new_polygon);
+                        }
+
+                        LINE_MODE = true;
+                        line_root_point = root_point;
+
+
                     }
                 }
                 default:
