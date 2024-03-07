@@ -63,7 +63,9 @@ int main() {
         if (LINE_MODE)
         {
             sf::VertexArray line(sf::Lines, 2);
-            line[0].position = line_root_point.getPosition();
+            line[0].position.x = line_root_point.getPosition().x + POINT_RADIUS;
+            line[0].position.y = line_root_point.getPosition().y + POINT_RADIUS;
+
             line[1].position.x = sf::Mouse::getPosition(window).x;
             line[1].position.y = sf::Mouse::getPosition(window).y;
 
