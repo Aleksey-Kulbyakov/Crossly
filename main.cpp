@@ -1,11 +1,10 @@
 #include "core/settings.h"
 #include "core/polygon.hpp"
-#include "core/debug.hpp"
-#include "core/graphic_utils.hpp"
+#include "core/utils.hpp"
 #include "SFML/Graphics.hpp"
 #include <vector>
 #include <iostream>
-
+#include <sstream>
 
 
 std::vector<Polygon> polygons;
@@ -21,25 +20,23 @@ int main() {
         std::cerr << "Failed to load an icon" << '\n';
     }
     window.setIcon(app_icon.getSize().x, app_icon.getSize().y, app_icon.getPixelsPtr());
-    // -- Create grid primitive
-    sf::RectangleShape cell(sf::Vector2f(GRID_SIZE, GRID_SIZE));
-    cell.setOutlineThickness(GRID_THICKNESS);
-    cell.setOutlineColor(GRID_OUTLINE_COLOR);
-    cell.setFillColor(GRID_FILL_COLOR);
-    //  -- Create point primitive
-    sf::CircleShape point(POINT_RADIUS);
-    point.setOutlineThickness(POINT_THICKNESS);
-    point.setOutlineColor(POINT_OUTLINE_COLOR);
-    point.setFillColor(POINT_FILL_COLOR);
+    // -- Create primitives
+    auto cell = create_cell();
+    auto point   = create_point();
     // -- Load main font for UI text
-    sf::Font font;
-    font.loadFromFile("../assets/fonts/Inter/InterDisplay-Medium.otf");
+    sf::Font font; font.loadFromFile("../assets/fonts/Inter/InterDisplay-Medium.otf");
     // -- Debug info
     sf::Text debug_info;
-    // -- Line mode
-    bool LINE_MODE = false;
-    sf::CircleShape line_root_point;
-    // End of initialization
+    // -- Modes
+    /* mode:
+     * 0 - Create new polygon
+     * 1 - Move point
+     * 2 - Remove point
+     * 3 - Line mode
+     * */
+    int mode = 0;
+    sf::CircleShape POINT_HELPER;
+
 
     // Start main loop
     while (window.isOpen())
@@ -57,40 +54,49 @@ int main() {
             }
         }
 
-        // Draw a pointer under cursor
-//        point.setPosition(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
-//        window.draw(point);
-        if (LINE_MODE)
-        {
-            sf::VertexArray line(sf::Lines, 2);
-            line[0].position.x = line_root_point.getPosition().x + POINT_RADIUS;
-            line[0].position.y = line_root_point.getPosition().y + POINT_RADIUS;
+        switch (mode) {
+            case 1:
+            {
+                // Move on point to cursor cords
+                POINT_HELPER.setPosition(
+                        sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y
+                );
+                std::cout << "Move point" << '\n';
+
+            }
+            case 3:
+            {
+                // Draw a line between cursor and root point
+                sf::VertexArray line(sf::Lines, 2);
+                line[0].position.x = POINT_HELPER.getPosition().x + POINT_RADIUS;
+                line[0].position.y = POINT_HELPER.getPosition().y + POINT_RADIUS;
 
 
-            line[1].position.x = sf::Mouse::getPosition(window).x;
-            line[1].position.y = sf::Mouse::getPosition(window).y;
+                line[1].position.x = sf::Mouse::getPosition(window).x;
+                line[1].position.y = sf::Mouse::getPosition(window).y;
 
-            window.draw(line);
+                window.draw(line);
+            }
+            default:
+                ;
         }
 
-        // Debug info
-        adjust_debug_text(debug_info,     5, FONT_SIZE*0, FONT_SIZE, font);
-
+        // Create a debug info
+        adjust_debug_text(debug_info, 5, FONT_SIZE*0, FONT_SIZE, font);
         std::stringstream string;
-        string << "Mouse X: " << sf::Mouse::getPosition(window).x << '\n';
-        string << "Mouse Y: " << sf::Mouse::getPosition(window).y << '\n';
-        string << "Total number of polygons: " << polygons.size() << '\n';
-        string << "Line mode is: " << LINE_MODE << '\n';
+        string << "Mouse X: "                  << sf::Mouse::getPosition(window).x << '\n';
+        string << "Mouse Y: "                  << sf::Mouse::getPosition(window).y << '\n';
+        string << "Total number of polygons: " << polygons.size()                           << '\n';
+        string << "Current mode is: "          << mode                                      << '\n';
         debug_info.setString(string.str());
         string.clear();
-
         window.draw(debug_info);
 
+        // Draw polygons
         bool CURSOR_ON_POINT  = false;
         int  ON_POLYGON_INDEX;
         int  ON_POINT_INDEX;
 
-        // Draw polygons
         for (int polygon_index = 0; polygon_index < polygons.size(); polygon_index++) {
             sf::ConvexShape convex;
             convex.setPointCount(polygons[polygon_index].num_of_dots);
@@ -147,18 +153,24 @@ int main() {
                             polygons[ON_POLYGON_INDEX] = polygons.back();
                             polygons.pop_back();
                         }
-                        LINE_MODE = false;
+                        mode = 0;
+                    }
+                    // Case 2: Change on_point position
+                    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && CURSOR_ON_POINT)
+                    {
+                        mode = 1;
+                        POINT_HELPER = polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX];
                     }
                     // Case 2: Draw a line
                     else if (CURSOR_ON_POINT)
                     {
-                        LINE_MODE = true;
-                        line_root_point = polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX];
+                        mode = 3;
+                        POINT_HELPER = polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX];
                     }
 
 
                     // Case 3: Adding a new dot
-                    else
+                    else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                     {
 
                         // Create new polygon
@@ -186,23 +198,19 @@ int main() {
 
                         std::vector<sf::CircleShape> points = {root_point};
 
-                        if (LINE_MODE)
+                        if (mode == 3)
                         {
                             polygons[ON_POLYGON_INDEX].points.push_back(root_point);
-                            LINE_MODE = false;
                             polygons[ON_POLYGON_INDEX].num_of_dots += 1;
                         }
                         else
                         {
                             Polygon new_polygon {1, points};
                             polygons.push_back(new_polygon);
+                            mode = 3;
 
-                            LINE_MODE = true;
-                            line_root_point = root_point;
                         }
-
-
-
+                        POINT_HELPER = root_point;
 
                     }
                 }
@@ -210,7 +218,7 @@ int main() {
                 {
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                     {
-                        LINE_MODE = false;
+                        mode = 0;
                     }
                 }
                 default:

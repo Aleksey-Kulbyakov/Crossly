@@ -11,8 +11,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(Crossly main.cpp
         core/settings.h
         core/polygon.hpp
-        core/graphic_utils.hpp
-        core/debug.hpp
+        core/utils.hpp
 )
 
 target_link_libraries(Crossly sfml-graphics)
