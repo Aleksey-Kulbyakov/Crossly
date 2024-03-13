@@ -1,13 +1,13 @@
 #include "core/settings.h"
-#include "core/polygon.hpp"
 #include "core/utils.hpp"
+#include "core/intersection.hpp"
 #include "SFML/Graphics.hpp"
 #include <vector>
 #include <iostream>
 #include <sstream>
 
 
-std::vector<Polygon> polygons;
+std::vector<std::vector<sf::CircleShape>> polygons;
 
 int main() {
     // Initialize variables
@@ -99,11 +99,11 @@ int main() {
 
         for (int polygon_index = 0; polygon_index < polygons.size(); polygon_index++) {
             sf::ConvexShape convex;
-            convex.setPointCount(polygons[polygon_index].num_of_dots);
+            convex.setPointCount(polygons[polygon_index].size());
             sf::Vector2<int> mouse_pos  = sf::Mouse::getPosition(window);
 
-            for (int point_index = 0; point_index < polygons[polygon_index].num_of_dots; point_index++) {
-                sf::CircleShape    cur_point = polygons[polygon_index].points[point_index];
+            for (int point_index = 0; point_index < polygons[polygon_index].size(); point_index++) {
+                sf::CircleShape    cur_point = polygons[polygon_index][point_index];
                 sf::Vector2<float> point_pos = cur_point.getPosition();
 
                 if (
@@ -132,6 +132,33 @@ int main() {
 
         }
 
+        // Draw intersections
+        if (polygons.size() > 1)
+        {
+            bool all_not_point = true;
+            for (int i = 0; i < polygons.size(); i++)
+            {
+                if (polygons.size() == 1)
+                {
+                    all_not_point = false;
+                    break;
+                }
+            }
+            if (all_not_point)
+            {
+                std::vector<sf::CircleShape> inter = findIntersections(polygons[0], polygons[1]);
+                sortVertex(inter);
+                for (int i = 2; i < polygons.size(); i++){
+                    inter = findIntersections(inter, polygons[i]);
+                    sortVertex(inter);
+                }
+
+                for (int i = 0; i < inter.size(); i++){
+                    std::cout << inter[i].getPosition().x << ' ' << inter[i].getPosition().y << std::endl;
+                }
+            }
+        }
+
 
         while (window.pollEvent(event))
         {
@@ -146,10 +173,9 @@ int main() {
                     // Case 1: Shift combo
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && CURSOR_ON_POINT)
                     {
-                        polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX] = polygons[ON_POLYGON_INDEX].points.back();
-                        polygons[ON_POLYGON_INDEX].points.pop_back();
-                        polygons[ON_POLYGON_INDEX].num_of_dots -= 1;
-                        if (polygons[ON_POLYGON_INDEX].num_of_dots == 0) {
+                        polygons[ON_POLYGON_INDEX][ON_POINT_INDEX] = polygons[ON_POLYGON_INDEX].back();
+                        polygons[ON_POLYGON_INDEX].pop_back();
+                        if (polygons[ON_POLYGON_INDEX].empty()) {
                             polygons[ON_POLYGON_INDEX] = polygons.back();
                             polygons.pop_back();
                         }
@@ -159,13 +185,13 @@ int main() {
                     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && CURSOR_ON_POINT)
                     {
                         mode = 1;
-                        POINT_HELPER = polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX];
+                        POINT_HELPER = polygons[ON_POLYGON_INDEX][ON_POINT_INDEX];
                     }
                     // Case 2: Draw a line
                     else if (CURSOR_ON_POINT)
                     {
                         mode = 3;
-                        POINT_HELPER = polygons[ON_POLYGON_INDEX].points[ON_POINT_INDEX];
+                        POINT_HELPER = polygons[ON_POLYGON_INDEX][ON_POINT_INDEX];
                     }
 
 
@@ -200,13 +226,11 @@ int main() {
 
                         if (mode == 3)
                         {
-                            polygons[ON_POLYGON_INDEX].points.push_back(root_point);
-                            polygons[ON_POLYGON_INDEX].num_of_dots += 1;
+                            polygons[ON_POLYGON_INDEX].push_back(root_point);
                         }
                         else
                         {
-                            Polygon new_polygon {1, points};
-                            polygons.push_back(new_polygon);
+                            polygons.push_back(points);
                             mode = 3;
 
                         }
