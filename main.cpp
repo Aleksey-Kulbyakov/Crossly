@@ -166,8 +166,8 @@ int main() {
                     modify_active_point(intersection_point);
                     intersection_convex.setPoint(i, intersection_point.getPosition());
                     intersection_point.setPosition(
-                            intersection_point.getPosition().x,
-                            intersection_point.getPosition().y);
+                            intersection_point.getPosition().x - POINT_RADIUS,
+                            intersection_point.getPosition().y - POINT_RADIUS);
                     window.draw(intersection_point);
 
                 }
