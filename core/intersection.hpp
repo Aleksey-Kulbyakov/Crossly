@@ -7,6 +7,10 @@
 
 
 bool isPointInsidePolygon(std::vector<sf::CircleShape>& points, sf::CircleShape& c) {
+    if (points.empty())
+    {
+        return false;
+    }
     bool res = false;
     sf::CircleShape p1 = points[0];
     sf::CircleShape p2;
@@ -104,29 +108,6 @@ std::vector<sf::CircleShape> findIntersections(std::vector<sf::CircleShape>& pol
     return intersections;
 }
 
-
-sf::CircleShape Centroid(const std::vector<sf::CircleShape>& points) {
-    sf::CircleShape centroid;
-    double sumX = 0, sumY = 0;
-    for (const auto& p : points) {
-        sumX += p.getPosition().x;
-        sumY += p.getPosition().y;
-    }
-    centroid.setPosition(sumX / points.size(), sumY / points.size());
-    return centroid;
-}
-
-double calculateAngle(const sf::CircleShape& centroid, const sf::CircleShape& point) {
-    return atan2(point.getPosition().y - centroid.getPosition().y, point.getPosition().x - centroid.getPosition().x);
-}
-
-void sortPoints(std::vector<sf::CircleShape>& points) {
-    sf::CircleShape centroid = Centroid(points);
-    std::sort(points.begin(), points.end(), [&centroid](const sf::CircleShape& a, const sf::CircleShape& b) {
-        return calculateAngle(centroid, a) < calculateAngle(centroid, b);
-    });
-}
-
 bool comparePoints(sf::CircleShape a, sf::CircleShape b) {
     return (a.getPosition().x < b.getPosition().x) || (a.getPosition().x == b.getPosition().x && a.getPosition().y < b.getPosition().y);
 }
@@ -138,38 +119,18 @@ int orientation(sf::CircleShape p, sf::CircleShape q, sf::CircleShape r) {
 }
 
 void sortVertex(std::vector<sf::CircleShape>& points) {
-    std::sort(points.begin(), points.end(), comparePoints);
+    if (!points.empty())
+    {
+        std::sort(points.begin(), points.end(), comparePoints);
 
-    sf::CircleShape p0 = points[0];
-    std::sort(points.begin() + 1, points.end(), [p0](sf::CircleShape a, sf::CircleShape b) {
-        int orient = orientation(p0, a, b);
-        if (orient == 0) {
-            return (a.getPosition().x + a.getPosition().y < b.getPosition().x + b.getPosition().y);
-        }
-        return (orient == 2);
-    });
+        sf::CircleShape p0 = points[0];
+        std::sort(points.begin() + 1, points.end(), [p0](sf::CircleShape a, sf::CircleShape b) {
+            int orient = orientation(p0, a, b);
+            if (orient == 0) {
+                return (a.getPosition().x + a.getPosition().y < b.getPosition().x + b.getPosition().y);
+            }
+            return (orient == 2);
+        });
+    }
+
 }
-
-//void general_inter() {
-//    std::vector<std::vector<sf::CircleShape>> polygons = {
-//            {{-4,-4}, {-3, 6}, {5, 6}},
-//            {{-2, 3}, {4, 9}, {4, 2}},
-//            {{1, -3}, {1, 7}, {7, 4},{7,0},
-//                    {1, -3}, {1, 7}, {7, 4},{7,0}}
-//    };
-//
-//    std::vector<sf::CircleShape> inter = findIntersections(polygons[0], polygons[1]);
-//    sortVertex(inter);
-//    for (int i = 2; i < polygons.size(); i++){
-//        inter = findIntersections(inter, polygons[i]);
-//        sortVertex(inter);
-//    }
-//    for (int i = 0; i < inter.size(); i++){
-//        std::cout << inter[i].getPosition().x << ' ' << inter[i].getPosition().y << std::endl;
-//    }
-//}
-//
-//int main() {
-//    general_inter();
-//    return 0;
-//}
