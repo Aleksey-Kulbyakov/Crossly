@@ -125,7 +125,7 @@ int main() {
                 }
 
                 convex.setPoint(point_index, cur_point.getPosition());
-                cur_point.setPosition(cur_point.getPosition().x - POINT_RADIUS, cur_point.getPosition().y - POINT_RADIUS);
+                cur_point.setPosition(cur_point.getPosition().x - POINT_RADIUS, cur_point.getPosition().y  - POINT_RADIUS);
                 window.draw(cur_point);
             }
             convex.setFillColor(POLYGON_FILL_COLOR);
@@ -166,8 +166,8 @@ int main() {
                     modify_active_point(intersection_point);
                     intersection_convex.setPoint(i, intersection_point.getPosition());
                     intersection_point.setPosition(
-                            intersection_point.getPosition().x - POINT_RADIUS,
-                            intersection_point.getPosition().y - POINT_RADIUS);
+                            intersection_point.getPosition().x,
+                            intersection_point.getPosition().y);
                     window.draw(intersection_point);
 
                 }
@@ -218,9 +218,9 @@ int main() {
 
                         if (squared_euclid_distance(mouse_pos.x, nearest_grid.x, mouse_pos.y, nearest_grid.y) <=
                             GRID_LINKING_RADIUS * GRID_LINKING_RADIUS) {
-                            new_point.setPosition(nearest_grid.x - POINT_RADIUS, nearest_grid.y - POINT_RADIUS);
+                            new_point.setPosition(nearest_grid.x, nearest_grid.y);
                         } else {
-                            new_point.setPosition(mouse_pos.x - POINT_RADIUS, mouse_pos.y - POINT_RADIUS);
+                            new_point.setPosition(mouse_pos.x, mouse_pos.y);
                         }
 
                         if (cur_mode == PolygonMaking)
@@ -263,65 +263,6 @@ int main() {
                         cur_mode = MovingPoint;
                     }
 
-
-
-
-
-//                        HELPER_POINT_PINDEX =
-//                        POINT_HELPER = root_point;
-//                    if  (cur_mode == PlacingPoint and CURSOR_ON_POINT)
-//                    {
-//
-//                    }
-//
-//
-//                    // Case 5: Clear Click
-//
-//
-//
-//
-//                    // Case 1: Shift combo
-//
-//
-//
-//                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && CURSOR_ON_POINT)
-//                    {
-//                        polygons[ON_POLYGON_INDEX][ON_POINT_INDEX] = polygons[ON_POLYGON_INDEX].back();
-//                        polygons[ON_POLYGON_INDEX].pop_back();
-//                        if (polygons[ON_POLYGON_INDEX].empty()) {
-//                            polygons[ON_POLYGON_INDEX] = polygons.back();
-//                            polygons.pop_back();
-//                        }
-//                        cur_mode = mode::MakingPolygon;
-//                    }
-//                    // Case 2: Change on_point position
-//                    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && CURSOR_ON_POINT)
-//                    {
-//                        cur_mode = mode::MovingPoint;
-//                        POINT_HELPER = polygons[ON_POLYGON_INDEX][ON_POINT_INDEX];
-//                    }
-//
-//                    // Case 3: Completing polygon drawing
-//                    else if (CURSOR_ON_POINT)
-//                    {
-//                        POINT_HELPER = polygons[ON_POLYGON_INDEX][ON_POINT_INDEX];
-//                    }
-//
-//
-//                    // Case 3: Adding a new dot
-//                    else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-//                    {
-//
-//
-//
-//                    }
-                }
-                case sf::Event::KeyPressed:
-                {
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                    {
-//                        cur_mode = mode::MakingPolygon;
-                    }
                 }
                 default:
                     ;
