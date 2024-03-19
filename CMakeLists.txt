@@ -8,6 +8,11 @@ FETCHCONTENT_MAKEAVAILABLE(SFML)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(Crossly main.cpp)
+add_executable(Crossly main.cpp
+        core/settings.h
+        core/polygon.hpp
+        core/utils.hpp
+        core/intersection.hpp
+)
 
 target_link_libraries(Crossly sfml-graphics)
