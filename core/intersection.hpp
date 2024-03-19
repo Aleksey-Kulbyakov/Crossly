@@ -3,10 +3,20 @@
 #include <algorithm>
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include <unordered_set>
 #include "settings.h"
 
+namespace std {
+    template <>
+    struct hash<std::pair<double, double>> {
+        size_t operator()(const std::pair<double, double>& p) const {
+            return std::hash<double>()(p.first) ^ std::hash<double>()(p.second);
+        }
+    };
+}
 
-bool isPointInsidePolygon(std::vector<sf::CircleShape>& points, sf::CircleShape& c) {
+
+bool isPointInsidePolygon(std::vector<sf::CircleShape>& points, const sf::CircleShape& c) {
     if (points.empty())
     {
         return false;
@@ -32,81 +42,86 @@ bool isPointInsidePolygon(std::vector<sf::CircleShape>& points, sf::CircleShape&
     return res;
 }
 
+
 std::pair<bool, sf::CircleShape> findIntersection(const sf::CircleShape& A, const sf::CircleShape& B, const sf::CircleShape& C, const sf::CircleShape& D) {
-    double a1 = B.getPosition().y - A.getPosition().y;
-    double b1 = A.getPosition().x - B.getPosition().x;
-    double c1 = a1 * A.getPosition().x + b1 * A.getPosition().y;
 
-    double a2 = D.getPosition().y - C.getPosition().y;
-    double b2 = C.getPosition().x - D.getPosition().x;
-    double c2 = a2 * C.getPosition().x + b2 * C.getPosition().y;
+    sf::CircleShape ret_point;
 
-    double delta = a1 * b2 - a2 * b1;
-    if (std::fabs(delta) < 1e-9) {
-        return {false, sf::CircleShape()};
+    auto det = [](const sf::CircleShape& p1, const sf::CircleShape& p2) { return p1.getPosition().x * p2.getPosition().y - p1.getPosition().y * p2.getPosition().x; };
+    auto isBetween = [](double a, double b, double c) { return std::min(a, b) <= c && c <= std::max(a, b); };
+
+    sf::CircleShape AB;
+    sf::CircleShape CD;
+    CD.setPosition(D.getPosition().x - C.getPosition().x, D.getPosition().y - C.getPosition().y);
+    AB.setPosition(B.getPosition().x - A.getPosition().x, B.getPosition().y - A.getPosition().y);
+
+    double delta = det(AB, CD);
+
+    if (std::fabs(delta) < 1e-9)
+        return {false, ret_point}; // Нет пересечения
+
+    sf::CircleShape AC;
+    AC.setPosition(C.getPosition().x - A.getPosition().x, C.getPosition().y - A.getPosition().y);
+    double t = det(AC, CD) / delta;
+    double u = det(AC, AB) / delta;
+
+    if (isBetween(0, 1, t) && isBetween(0, 1, u))
+    {
+        ret_point.setPosition(A.getPosition().x + t * AB.getPosition().x, A.getPosition().y + t * AB.getPosition().y);
+        return {true, ret_point};
     }
-
-    double x = (b2 * c1 - b1 * c2) / delta;
-    double y = (a1 * c2 - a2 * c1) / delta;
-
-    if (x < std::min(A.getPosition().x, B.getPosition().x) || x > std::max(A.getPosition().x, B.getPosition().x) || x < std::min(C.getPosition().x, D.getPosition().x) || x > std::max(C.getPosition().x, D.getPosition().x) ||
-        y < std::min(A.getPosition().y, B.getPosition().y) || y > std::max(A.getPosition().y, B.getPosition().y) || y < std::min(C.getPosition().y, D.getPosition().y) || y > std::max(C.getPosition().y, D.getPosition().y)) {
-        return {false, sf::CircleShape()};
+    else
+    {
+        return {false, ret_point}; // Нет пересечения
     }
-
-    sf::CircleShape ret_point(ACTIVE_POINT_RADIUS);
-    ret_point.setPosition(x, y);
-    return {true, ret_point};
 }
+
 
 std::vector<sf::CircleShape> findIntersections(std::vector<sf::CircleShape>& polygon1, std::vector<sf::CircleShape>& polygon2) {
     std::vector<sf::CircleShape> intersections;
+    std::unordered_set<std::pair<double, double>> intersectionSet;
 
-    for (int i = 0; i < polygon1.size(); ++i) {
-        for (int j = 0; j < polygon2.size(); ++j) {
-            auto result = findIntersection(polygon1[i], polygon1[(i + 1) % polygon1.size()], polygon2[j], polygon2[(j + 1) % polygon2.size()]);
-            if (result.first) {
-                bool duplicate = false;
-                for (const auto& point : intersections) {
-                    if (std::fabs(point.getPosition().x - result.second.getPosition().x) < 1e-9 && std::fabs(point.getPosition().y - result.second.getPosition().y) < 1e-9) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (!duplicate)
-                    intersections.push_back(result.second);
-            }
+    auto insertUnique = [&](const sf::CircleShape& point) {
+        auto [x, y] = point.getPosition();
+        intersectionSet.insert({x, y});
+    };
+
+    auto isDuplicate = [&](const sf::CircleShape& point) {
+        auto [x, y] = point.getPosition();
+        return intersectionSet.find({x, y}) != intersectionSet.end();
+    };
+
+    auto findAndInsertIntersection = [&](const sf::CircleShape& p1, const sf::CircleShape& p2, const sf::CircleShape& p3, const sf::CircleShape& p4) {
+        auto result = findIntersection(p1, p2, p3, p4);
+        if (result.first && !isDuplicate(result.second)) {
+            intersections.push_back(result.second);
+            insertUnique(result.second);
+        }
+    };
+
+    for (size_t i = 0; i < polygon1.size(); ++i) {
+        for (size_t j = 0; j < polygon2.size(); ++j) {
+            findAndInsertIntersection(polygon1[i], polygon1[(i + 1) % polygon1.size()], polygon2[j], polygon2[(j + 1) % polygon2.size()]);
         }
     }
 
-    for (auto& vertex : polygon1) {
-        if (isPointInsidePolygon(polygon2, vertex)) {
-            bool duplicate = false;
-            for (const auto& point : intersections) {
-                if (std::fabs(point.getPosition().x - vertex.getPosition().x) < 1e-9 && std::fabs(point.getPosition().y - vertex.getPosition().y) < 1e-9) {
-                    duplicate = true;
-                    break;
-                }
-            }
-            if (!duplicate)
-                intersections.push_back(vertex);
+    for (const auto& vertex : polygon1) {
+        if (isPointInsidePolygon(polygon2, vertex) && !isDuplicate(vertex)) {
+            intersections.push_back(vertex);
+            insertUnique(vertex);
         }
     }
-    for (auto& vertex : polygon2) {
-        if (isPointInsidePolygon(polygon1, vertex)) {
-            bool duplicate = false;
-            for (const auto& point : intersections) {
-                if (std::fabs(point.getPosition().x - vertex.getPosition().x) < 1e-9 && std::fabs(point.getPosition().y - vertex.getPosition().y) < 1e-9) {
-                    duplicate = true;
-                    break;
-                }
-            }
-            if (!duplicate)
-                intersections.push_back(vertex);
+
+    for (const auto& vertex : polygon2) {
+        if (isPointInsidePolygon(polygon1, vertex) && !isDuplicate(vertex)) {
+            intersections.push_back(vertex);
+            insertUnique(vertex);
         }
     }
+
     return intersections;
 }
+
 
 bool comparePoints(sf::CircleShape a, sf::CircleShape b) {
     return (a.getPosition().x < b.getPosition().x) || (a.getPosition().x == b.getPosition().x && a.getPosition().y < b.getPosition().y);
