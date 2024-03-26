@@ -1,5 +1,5 @@
 <h1 align="center">
-    <img src="assets/images/logo.png" width="300">
+    <img src="logo.png" width="300">
 </h1><br>
 
 --------------------------------------------------------------------------------
@@ -13,5 +13,8 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
-
 ```
+Open MVS and do following steps
+1) Set a Startup project
+2) Release build
+3) Move assets directory to crossly.exe

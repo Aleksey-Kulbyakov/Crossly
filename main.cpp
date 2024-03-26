@@ -1,6 +1,7 @@
 #include "core/settings.h"
 #include "core/utils.hpp"
 #include "core/intersection.hpp"
+#include "core/square.hpp"
 #include "SFML/Graphics.hpp"
 #include <vector>
 #include <iostream>
@@ -15,7 +16,7 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), TITLE);
     // -- Load icon file
     sf::Image app_icon;
-    if (!app_icon.loadFromFile("./assets/icons/icon.png"))
+    if (!app_icon.loadFromFile("./assets/images/icon.png"))
     {
         std::cerr << "Failed to load an icon" << '\n';
     }
@@ -57,6 +58,59 @@ int main() {
             }
         }
 
+        // Draw polygons
+        CURSOR_ON_POINT = false;
+
+        for (int polygon_index = 0; polygon_index < polygons.size(); polygon_index++){
+
+            sf::ConvexShape convex;
+            convex.setPointCount(polygons[polygon_index].size());
+            sf::Vector2<int> mouse_pos  = sf::Mouse::getPosition(window);
+
+
+            for (int point_index = 0; point_index < polygons[polygon_index].size(); point_index++) {
+                sf::CircleShape    cur_point = polygons[polygon_index][point_index];
+                sf::Vector2<float> point_pos = cur_point.getPosition();
+
+
+                // Magnet to nearest point
+                if (squared_euclid_distance(mouse_pos.x, point_pos.x, mouse_pos.y, point_pos.y) <= GRID_SELECT_RADIUS*GRID_SELECT_RADIUS && !CURSOR_ON_POINT)
+                {
+                    CURSOR_ON_POINT  = true;
+                    if (cur_mode != MovingPoint)
+                    {
+                        ON_POINT_PINDEX  = polygon_index;
+                        ON_POINT_VINDEX  = point_index;
+                        cur_point.setFillColor(SELECTED_POINT_FILL_COLOR);
+                    }
+
+
+                }
+                else
+                {
+                    if (point_index == 0 && HELPER_POINT_PINDEX == polygon_index)
+                    {
+                        modify_first_point(cur_point);
+                    }
+                    else
+                    {
+                        cur_point.setFillColor(POINT_FILL_COLOR);
+                    }
+
+                }
+
+                convex.setPoint(point_index, cur_point.getPosition());
+                cur_point.setPosition(cur_point.getPosition().x - POINT_RADIUS, cur_point.getPosition().y  - POINT_RADIUS);
+                window.draw(cur_point);
+            }
+            convex.setFillColor(POLYGON_FILL_COLOR);
+            convex.setOutlineThickness(POLYGON_THICKNESS);
+            convex.setOutlineColor(POLYGON_OUTLINE_COLOR);
+            if (polygon_index == HELPER_POINT_PINDEX) { continue;}
+            window.draw(convex);
+
+        }
+
         switch (cur_mode) {
             case PolygonExtension:
             {
@@ -84,55 +138,9 @@ int main() {
                 ;
         }
 
-        // Draw polygons
-        CURSOR_ON_POINT = false;
-
-        for (int polygon_index = 0; polygon_index < polygons.size(); polygon_index++){
-
-            sf::ConvexShape convex;
-            convex.setPointCount(polygons[polygon_index].size());
-            sf::Vector2<int> mouse_pos  = sf::Mouse::getPosition(window);
 
 
-            for (int point_index = 0; point_index < polygons[polygon_index].size(); point_index++) {
-                sf::CircleShape    cur_point = polygons[polygon_index][point_index];
-                sf::Vector2<float> point_pos = cur_point.getPosition();
-
-
-                // Magnet to nearest point
-                if (squared_euclid_distance(mouse_pos.x, point_pos.x, mouse_pos.y, point_pos.y) <= GRID_SELECT_RADIUS*GRID_SELECT_RADIUS && !CURSOR_ON_POINT)
-                {
-                    CURSOR_ON_POINT  = true;
-                    ON_POINT_PINDEX  = polygon_index;
-                    ON_POINT_VINDEX  = point_index;
-                    cur_point.setFillColor(SELECTED_POINT_FILL_COLOR);
-                }
-                else
-                {
-                    if (point_index == 0 && HELPER_POINT_PINDEX == polygon_index)
-                    {
-                        modify_first_point(cur_point);
-                    }
-                    else
-                    {
-                        cur_point.setFillColor(POINT_FILL_COLOR);
-                    }
-
-                }
-
-                convex.setPoint(point_index, cur_point.getPosition());
-                cur_point.setPosition(cur_point.getPosition().x - POINT_RADIUS, cur_point.getPosition().y  - POINT_RADIUS);
-                window.draw(cur_point);
-            }
-            convex.setFillColor(POLYGON_FILL_COLOR);
-            convex.setOutlineThickness(POLYGON_THICKNESS);
-            convex.setOutlineColor(POLYGON_OUTLINE_COLOR);
-            if (polygon_index == HELPER_POINT_PINDEX) { continue;}
-            window.draw(convex);
-
-        }
-
-
+        std::stringstream string;
 
         // Draw intersections
         if (cur_mode == PolygonMaking)
@@ -155,10 +163,12 @@ int main() {
                 }
 
                 sf::ConvexShape intersection_convex;
+                std::vector<sf::CircleShape> point_for_area;
                 intersection_convex.setPointCount(inter.size());
 
                 for (int i = 0; i < inter.size(); i++){
                     sf::CircleShape intersection_point = inter[i];
+                    point_for_area.push_back(intersection_point);
                     modify_active_point(intersection_point);
                     intersection_convex.setPoint(i, intersection_point.getPosition());
                     intersection_point.setPosition(
@@ -171,6 +181,7 @@ int main() {
                 intersection_convex.setOutlineColor(CONVEX_OUTLINE_COLOR);
                 intersection_convex.setOutlineThickness(CONVEX_THICKNESS);
                 window.draw(intersection_convex);
+                string << "Area of intersection is " << intersectionArea(point_for_area) << '\n';
             }
 
         }
@@ -178,7 +189,7 @@ int main() {
         // Create a debug info
         if (DEBUG) {
             adjust_debug_text(debug_info, 5, FONT_SIZE*0, FONT_SIZE, font);
-            std::stringstream string;
+
             string << "Mouse X: "                  << sf::Mouse::getPosition(window).x << '\n';
             string << "Mouse Y: "                  << sf::Mouse::getPosition(window).y << '\n';
             string << "Total number of polygons: " << polygons.size()                           << '\n';
@@ -244,6 +255,19 @@ int main() {
                     }
                     else if (cur_mode == MovingPoint)
                     {
+                        sf::Vector2<int> mouse_pos = sf::Mouse::getPosition(window);
+                        sf::Vector2<int> nearest_grid = link_to_grid(mouse_pos);
+
+                        if (squared_euclid_distance(mouse_pos.x, nearest_grid.x, mouse_pos.y, nearest_grid.y) <=
+                            GRID_LINKING_RADIUS * GRID_LINKING_RADIUS) {
+                            polygons[ON_POINT_PINDEX][ON_POINT_VINDEX].setPosition(
+                                    nearest_grid.x,
+                                    nearest_grid.y);
+                        } else {
+                            polygons[ON_POINT_PINDEX][ON_POINT_VINDEX].setPosition(
+                                    mouse_pos.x,
+                                    mouse_pos.y);
+                        }
                         cur_mode = PolygonMaking;
                     }
                         // Case 2: Removing point
