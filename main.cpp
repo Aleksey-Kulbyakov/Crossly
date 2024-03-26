@@ -15,7 +15,7 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), TITLE);
     // -- Load icon file
     sf::Image app_icon;
-    if (!app_icon.loadFromFile("../assets/icons/icon.png"))
+    if (!app_icon.loadFromFile("../assets/images/icon.png"))
     {
         std::cerr << "Failed to load an icon" << '\n';
     }
