@@ -15,7 +15,7 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), TITLE);
     // -- Load icon file
     sf::Image app_icon;
-    if (!app_icon.loadFromFile("../assets/images/icon.png"))
+    if (!app_icon.loadFromFile("./assets/icons/icon.png"))
     {
         std::cerr << "Failed to load an icon" << '\n';
     }
@@ -24,7 +24,7 @@ int main() {
     auto cell = create_cell();
     auto point   = create_point();
     // -- Load main font for UI text
-    sf::Font font; font.loadFromFile("../assets/fonts/Inter/InterDisplay-Medium.otf");
+    sf::Font font; font.loadFromFile("./assets/fonts/Inter/InterDisplay-Medium.otf");
     // -- Debug info
     sf::Text debug_info;
     // -- Modes
@@ -100,11 +100,7 @@ int main() {
 
 
                 // Magnet to nearest point
-                if (
-                        squared_euclid_distance(mouse_pos.x, point_pos.x, mouse_pos.y, point_pos.y) <= GRID_SELECT_RADIUS*GRID_SELECT_RADIUS
-                        and
-                        !CURSOR_ON_POINT
-                        )
+                if (squared_euclid_distance(mouse_pos.x, point_pos.x, mouse_pos.y, point_pos.y) <= GRID_SELECT_RADIUS*GRID_SELECT_RADIUS && !CURSOR_ON_POINT)
                 {
                     CURSOR_ON_POINT  = true;
                     ON_POINT_PINDEX  = polygon_index;
@@ -113,7 +109,7 @@ int main() {
                 }
                 else
                 {
-                    if (point_index == 0 and HELPER_POINT_PINDEX == polygon_index)
+                    if (point_index == 0 && HELPER_POINT_PINDEX == polygon_index)
                     {
                         modify_first_point(cur_point);
                     }
@@ -144,7 +140,7 @@ int main() {
             std::vector<std::vector<sf::CircleShape>> temp;
             for (int polygon_index = 0; polygon_index < polygons.size(); polygon_index++)
             {
-                if (polygons[polygon_index].size() > 2 and polygon_index != HELPER_POINT_PINDEX)
+                if (polygons[polygon_index].size() > 2 && polygon_index != HELPER_POINT_PINDEX)
                 {
                     temp.push_back(polygons[polygon_index]);
                 }
@@ -208,7 +204,7 @@ int main() {
                 case sf::Event::MouseButtonPressed:
                 {
                     // Case 1: Place point
-                    if  ((cur_mode == PolygonMaking or cur_mode == PolygonExtension) and !CURSOR_ON_POINT) {
+                    if  ((cur_mode == PolygonMaking || cur_mode == PolygonExtension) && !CURSOR_ON_POINT) {
                         // Create new polygon
                         sf::CircleShape new_point(POINT_RADIUS);
                         modify_root_point(new_point);
@@ -237,9 +233,9 @@ int main() {
 
                         cur_mode = PolygonExtension;
                     }
-                    else if (cur_mode == PolygonExtension and CURSOR_ON_POINT)
+                    else if (cur_mode == PolygonExtension && CURSOR_ON_POINT)
                     {
-                        if (HELPER_POINT_PINDEX == ON_POINT_PINDEX and ON_POINT_VINDEX == 0)
+                        if (HELPER_POINT_PINDEX == ON_POINT_PINDEX && ON_POINT_VINDEX == 0)
                         {
                             cur_mode = mode::PolygonMaking;
                             HELPER_POINT_PINDEX = -1;
@@ -250,14 +246,14 @@ int main() {
                     {
                         cur_mode = PolygonMaking;
                     }
-                    // Case 2: Removing point
+                        // Case 2: Removing point
                     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) && CURSOR_ON_POINT)
                     {
                         polygons[ON_POINT_PINDEX] = polygons.back();
                         polygons.pop_back();
                     }
 
-                    // Case 3: Moving point
+                        // Case 3: Moving point
                     else if (CURSOR_ON_POINT)
                     {
                         cur_mode = MovingPoint;
