@@ -43,6 +43,7 @@ bool isPointInsidePolygon(std::vector<sf::CircleShape>& points, const sf::Circle
 }
 
 
+
 std::pair<bool, sf::CircleShape> findIntersection(const sf::CircleShape& A, const sf::CircleShape& B, const sf::CircleShape& C, const sf::CircleShape& D) {
 
     sf::CircleShape ret_point;

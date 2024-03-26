@@ -13,6 +13,7 @@ add_executable(Crossly main.cpp
         core/polygon.hpp
         core/utils.hpp
         core/intersection.hpp
+        core/square.hpp
 )
 
 target_link_libraries(Crossly sfml-graphics)
